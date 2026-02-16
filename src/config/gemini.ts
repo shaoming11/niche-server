@@ -1,10 +1,10 @@
-const { GoogleGenerativeAI } = require('@google/generative-ai');
+import { GoogleGenerativeAI, GenerativeModel } from '@google/generative-ai';
 
 const geminiApiKey = process.env.GEMINI_API_KEY;
 
-let genAI = null;
+let genAI: GoogleGenerativeAI | null = null;
 
-function getGeminiClient() {
+function getGeminiClient(): GoogleGenerativeAI {
   if (!geminiApiKey) {
     throw new Error('Missing GEMINI_API_KEY environment variable');
   }
@@ -14,9 +14,9 @@ function getGeminiClient() {
   return genAI;
 }
 
-function getModel() {
+function getModel(): GenerativeModel {
   const client = getGeminiClient();
   return client.getGenerativeModel({ model: 'gemini-2.5-flash' });
 }
 
-module.exports = { getGeminiClient, getModel };
+export { getGeminiClient, getModel };

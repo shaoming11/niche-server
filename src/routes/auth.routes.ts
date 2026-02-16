@@ -1,15 +1,15 @@
-const express = require('express');
-const router = express.Router();
-const { supabase, supabaseAdmin } = require('../config/database');
-const { requireAuth } = require('../middleware/auth');
-const { validateRegistration, validateLogin } = require('../middleware/validation');
+import { Router, Request, Response, NextFunction } from 'express';
+import { supabase, supabaseAdmin } from '../config/database';
+import { requireAuth } from '../middleware/auth';
+import { validateRegistration, validateLogin } from '../middleware/validation';
+
+const router = Router();
 
 // POST /api/auth/register
-router.post('/register', validateRegistration, async (req, res, next) => {
+router.post('/register', ...validateRegistration, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { email, password, username, name } = req.body;
 
-    // Check username uniqueness
     const { data: existing } = await supabaseAdmin
       .from('profiles')
       .select('id')
@@ -17,36 +17,37 @@ router.post('/register', validateRegistration, async (req, res, next) => {
       .single();
 
     if (existing) {
-      return res.status(409).json({ error: 'Username already taken' });
+      res.status(409).json({ error: 'Username already taken' });
+      return;
     }
 
-    // Create user in Supabase Auth
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email,
       password,
     });
 
     if (authError) {
-      return res.status(400).json({ error: authError.message });
+      res.status(400).json({ error: authError.message });
+      return;
     }
 
-    // Create profile
     const { error: profileError } = await supabaseAdmin
       .from('profiles')
       .insert({
-        id: authData.user.id,
+        id: authData.user!.id,
         username,
         name,
       });
 
     if (profileError) {
-      return res.status(500).json({ error: 'Failed to create profile' });
+      res.status(500).json({ error: 'Failed to create profile' });
+      return;
     }
 
     res.status(201).json({
       user: {
-        id: authData.user.id,
-        email: authData.user.email,
+        id: authData.user!.id,
+        email: authData.user!.email,
         username,
       },
       session: authData.session,
@@ -57,7 +58,7 @@ router.post('/register', validateRegistration, async (req, res, next) => {
 });
 
 // POST /api/auth/login
-router.post('/login', validateLogin, async (req, res, next) => {
+router.post('/login', ...validateLogin, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { email, password } = req.body;
 
@@ -67,7 +68,8 @@ router.post('/login', validateLogin, async (req, res, next) => {
     });
 
     if (error) {
-      return res.status(401).json({ error: 'Invalid credentials' });
+      res.status(401).json({ error: 'Invalid credentials' });
+      return;
     }
 
     res.json({
@@ -80,11 +82,12 @@ router.post('/login', validateLogin, async (req, res, next) => {
 });
 
 // POST /api/auth/logout
-router.post('/logout', requireAuth, async (req, res, next) => {
+router.post('/logout', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { error } = await supabase.auth.signOut();
     if (error) {
-      return res.status(500).json({ error: 'Logout failed' });
+      res.status(500).json({ error: 'Logout failed' });
+      return;
     }
     res.json({ message: 'Logged out successfully' });
   } catch (err) {
@@ -93,23 +96,25 @@ router.post('/logout', requireAuth, async (req, res, next) => {
 });
 
 // GET /api/auth/verify
-router.get('/verify', requireAuth, (req, res) => {
+router.get('/verify', requireAuth, (req: Request, res: Response) => {
   res.json({ user: req.user });
 });
 
 // POST /api/auth/refresh
-router.post('/refresh', async (req, res, next) => {
+router.post('/refresh', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { refresh_token } = req.body;
 
     if (!refresh_token) {
-      return res.status(400).json({ error: 'Refresh token required' });
+      res.status(400).json({ error: 'Refresh token required' });
+      return;
     }
 
     const { data, error } = await supabase.auth.refreshSession({ refresh_token });
 
     if (error) {
-      return res.status(401).json({ error: 'Invalid refresh token' });
+      res.status(401).json({ error: 'Invalid refresh token' });
+      return;
     }
 
     res.json({ session: data.session });
@@ -118,4 +123,4 @@ router.post('/refresh', async (req, res, next) => {
   }
 });
 
-module.exports = router;
+export default router;

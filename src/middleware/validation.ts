@@ -1,15 +1,17 @@
-const { body, param, query, validationResult } = require('express-validator');
+import { body, query, validationResult } from 'express-validator';
+import { Request, Response, NextFunction } from 'express';
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-function isValidUUID(str) {
+function isValidUUID(str: string): boolean {
   return UUID_REGEX.test(str);
 }
 
-function handleValidationErrors(req, res, next) {
+function handleValidationErrors(req: Request, res: Response, next: NextFunction): void {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array().map(e => e.msg) });
+    res.status(400).json({ errors: errors.array().map(e => e.msg) });
+    return;
   }
   next();
 }
@@ -41,7 +43,7 @@ const validateProfileUpdate = [
 const validatePostCreation = [
   body('title').isLength({ min: 3, max: 200 }).withMessage('Title must be 3-200 characters'),
   body('content').isLength({ min: 10, max: 10000 }).withMessage('Content must be 10-10000 characters'),
-  body('business_id').custom(val => isValidUUID(val)).withMessage('Valid business_id required'),
+  body('business_id').custom((val: string) => isValidUUID(val)).withMessage('Valid business_id required'),
   handleValidationErrors,
 ];
 
@@ -53,7 +55,7 @@ const validatePostUpdate = [
 
 const validateMessageCreation = [
   body('content').isLength({ min: 1, max: 5000 }).withMessage('Content must be 1-5000 characters'),
-  body('parent_message_id').optional({ values: 'null' }).custom(val => !val || isValidUUID(val)).withMessage('Invalid parent_message_id'),
+  body('parent_message_id').optional({ values: 'null' }).custom((val: string) => !val || isValidUUID(val)).withMessage('Invalid parent_message_id'),
   handleValidationErrors,
 ];
 
@@ -69,7 +71,7 @@ const validatePagination = [
   handleValidationErrors,
 ];
 
-module.exports = {
+export {
   isValidUUID,
   handleValidationErrors,
   validateRegistration,
