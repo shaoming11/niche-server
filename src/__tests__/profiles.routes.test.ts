@@ -1,4 +1,4 @@
-import { createMockQueryBuilder, createMockSupabaseAdmin, mockUser, mockAuthToken, MockQueryBuilder } from './setup';
+import { createMockQueryBuilder, createMockSupabaseAdmin, mockUser, mockAuthToken, MockQueryBuilder } from './setup.js';
 
 const mockAdmin = createMockSupabaseAdmin({});
 
@@ -8,7 +8,7 @@ jest.mock('../config/database', () => ({
 }));
 
 import request from 'supertest';
-import app from '../app';
+import app from '../app.js';
 
 describe('Profile Routes', () => {
   let profilesBuilder: MockQueryBuilder;
@@ -201,7 +201,7 @@ describe('Profile Routes', () => {
       expect(res.status).toBe(200);
       expect(res.body.bookmarks).toEqual([
         {
-          business: bookmarksData[0].business,
+          business: bookmarksData[0]?.business,
           bookmarked_at: '2024-01-15T10:30:00Z',
         },
       ]);

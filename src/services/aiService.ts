@@ -1,4 +1,4 @@
-import { getModel } from '../config/gemini';
+import { getModel } from '../config/gemini.js';
 
 async function generatePostSummary(title: string, messages: string[]): Promise<string> {
   const model = getModel();

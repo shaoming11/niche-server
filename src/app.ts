@@ -1,15 +1,15 @@
 import express from 'express';
 import cors from 'cors';
-import { errorHandler } from './middleware/errorHandler';
-import authRoutes from './routes/auth.routes';
-import profileRoutes from './routes/profiles.routes';
-import businessRoutes from './routes/businesses.routes';
-import postRoutes from './routes/posts.routes';
-import messageRoutes from './routes/messages.routes';
-import reviewRoutes from './routes/reviews.routes';
-import bookmarkRoutes from './routes/bookmarks.routes';
-import dealRoutes from './routes/deals.routes';
-import aiRoutes from './routes/ai.routes';
+import { errorHandler } from './middleware/errorHandler.js';
+import authRoutes from './routes/auth.routes.js';
+import profileRoutes from './routes/profiles.routes.js';
+import businessRoutes from './routes/businesses.routes.js';
+import postRoutes from './routes/posts.routes.js';
+import messageRoutes from './routes/messages.routes.js';
+import reviewRoutes from './routes/reviews.routes.js';
+import bookmarkRoutes from './routes/bookmarks.routes.js';
+import dealRoutes from './routes/deals.routes.js';
+import aiRoutes from './routes/ai.routes.js';
 
 const app = express();
 

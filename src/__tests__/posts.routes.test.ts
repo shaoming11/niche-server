@@ -1,4 +1,4 @@
-import { createMockQueryBuilder, createMockSupabaseAdmin, mockUser, mockAuthToken, MockQueryBuilder } from './setup';
+import { createMockQueryBuilder, createMockSupabaseAdmin, mockUser, mockAuthToken, MockQueryBuilder } from './setup.js';
 
 const mockAdmin = createMockSupabaseAdmin({});
 
@@ -8,7 +8,7 @@ jest.mock('../config/database', () => ({
 }));
 
 import request from 'supertest';
-import app from '../app';
+import app from '../app.js';
 
 describe('Post Routes', () => {
   let postsBuilder: MockQueryBuilder;

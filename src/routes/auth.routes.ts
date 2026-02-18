@@ -1,7 +1,7 @@
 import { Router, Request, Response, NextFunction } from 'express';
-import { supabase, supabaseAdmin } from '../config/database';
-import { requireAuth } from '../middleware/auth';
-import { validateRegistration, validateLogin } from '../middleware/validation';
+import { supabase, supabaseAdmin } from '../config/database.js';
+import { requireAuth } from '../middleware/auth.js';
+import { validateRegistration, validateLogin } from '../middleware/validation.js';
 
 const router = Router();
 

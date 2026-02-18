@@ -1,5 +1,5 @@
-import { supabaseAdmin } from '../config/database';
-import { generatePostSummary } from './aiService';
+import { supabaseAdmin } from '../config/database.js';
+import { generatePostSummary } from './aiService.js';
 
 async function processAISummaryQueue(): Promise<void> {
   while (true) {

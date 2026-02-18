@@ -1,8 +1,8 @@
 import { Router, Request, Response, NextFunction } from 'express';
-import { supabaseAdmin } from '../config/database';
-import { requireAuth } from '../middleware/auth';
-import { validatePostCreation, validatePostUpdate, validatePagination } from '../middleware/validation';
-import { getPagination, buildPaginationMeta, calculateHotScore } from '../utils/helpers';
+import { supabaseAdmin } from '../config/database.js';
+import { requireAuth } from '../middleware/auth.js';
+import { validatePostCreation, validatePostUpdate, validatePagination } from '../middleware/validation.js';
+import { getPagination, buildPaginationMeta, calculateHotScore } from '../utils/helpers.js';
 
 const router = Router();
 

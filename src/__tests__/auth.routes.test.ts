@@ -1,4 +1,4 @@
-import { createMockQueryBuilder, createMockSupabaseAdmin, mockUser, mockAuthToken } from './setup';
+import { createMockQueryBuilder, createMockSupabaseAdmin, mockUser, mockAuthToken } from './setup.js';
 
 // Create mock admin before importing app
 const profilesBuilder = createMockQueryBuilder();
@@ -12,7 +12,7 @@ jest.mock('../config/database', () => ({
 }));
 
 import request from 'supertest';
-import app from '../app';
+import app from '../app.js';
 
 describe('Auth Routes', () => {
   beforeEach(() => {

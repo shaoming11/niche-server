@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { supabase } from '../config/database';
+import { supabase } from '../config/database.js';
 
 async function requireAuth(req: Request, res: Response, next: NextFunction): Promise<void> {
   const token = req.headers.authorization?.replace('Bearer ', '');
