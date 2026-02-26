@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import path from 'path';
 import { errorHandler } from './middleware/errorHandler.js';
 import authRoutes from './routes/auth.routes.js';
 import profileRoutes from './routes/profiles.routes.js';
@@ -19,6 +20,9 @@ app.use(cors({
   credentials: true,
 }));
 app.use(express.json());
+
+// Serve static test page
+app.use(express.static(path.join(import.meta.dirname, '..', 'public')));
 
 // Health check
 app.get('/api/health', (_req, res) => {

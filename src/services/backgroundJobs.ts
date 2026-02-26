@@ -2,6 +2,7 @@ import { supabaseAdmin } from '../config/database.js';
 import { generatePostSummary } from './aiService.js';
 
 async function processAISummaryQueue(): Promise<void> {
+  console.log('[AI Queue] Worker started');
   while (true) {
     try {
       // 1. Fetch pending job
@@ -14,10 +15,11 @@ async function processAISummaryQueue(): Promise<void> {
         .single();
 
       if (fetchError || !job) {
-        // No pending jobs, wait before checking again
         await new Promise(resolve => setTimeout(resolve, 10000));
         continue;
       }
+
+      console.log(`[AI Queue] Processing job ${job.id} for post ${job.post_id}`);
 
       // 2. Mark as processing
       await supabaseAdmin
@@ -46,6 +48,8 @@ async function processAISummaryQueue(): Promise<void> {
 
         const messageTexts = (messages || []).map((m: any) => m.content);
 
+        console.log(`[AI Queue] Calling Gemini for "${post.title}" (${messageTexts.length} messages)`);
+
         // 4. Generate summary
         const summary = await generatePostSummary(post.title, messageTexts);
 
@@ -66,7 +70,11 @@ async function processAISummaryQueue(): Promise<void> {
             processed_at: new Date().toISOString(),
           })
           .eq('id', job.id);
+
+        console.log(`[AI Queue] Job ${job.id} completed`);
       } catch (processingError: any) {
+        console.error(`[AI Queue] Job ${job.id} failed:`, processingError.message);
+
         // 7. Mark job as failed
         await supabaseAdmin
           .from('ai_summary_queue')
@@ -78,7 +86,7 @@ async function processAISummaryQueue(): Promise<void> {
           .eq('id', job.id);
       }
     } catch (err) {
-      console.error('Background job error:', err);
+      console.error('[AI Queue] Worker error:', err);
       await new Promise(resolve => setTimeout(resolve, 5000));
     }
   }

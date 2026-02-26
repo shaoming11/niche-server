@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>API Route Tester</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0d1117; color: #c9d1d9; }
+    .layout { display: flex; height: 100vh; }
+    .sidebar { width: 280px; background: #161b22; border-right: 1px solid #30363d; overflow-y: auto; flex-shrink: 0; }
+    .sidebar h2 { padding: 16px; font-size: 14px; color: #8b949e; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid #30363d; }
+    .route-group { border-bottom: 1px solid #30363d; }
+    .route-group summary { padding: 10px 16px; cursor: pointer; font-weight: 600; font-size: 13px; color: #58a6ff; }
+    .route-group summary:hover { background: #1c2128; }
+    .route-btn { display: flex; align-items: center; gap: 8px; width: 100%; padding: 6px 16px 6px 24px; border: none; background: none; color: #c9d1d9; font-size: 12px; cursor: pointer; text-align: left; }
+    .route-btn:hover { background: #1c2128; }
+    .route-btn .method { font-weight: 700; font-size: 10px; padding: 2px 6px; border-radius: 3px; min-width: 42px; text-align: center; }
+    .method-GET { background: #1a4d2e; color: #3fb950; }
+    .method-POST { background: #3d2e00; color: #d29922; }
+    .method-PUT { background: #1a3a5c; color: #58a6ff; }
+    .method-DELETE { background: #4d1a1a; color: #f85149; }
+    .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+    .toolbar { display: flex; align-items: center; gap: 8px; padding: 12px 16px; border-bottom: 1px solid #30363d; background: #161b22; }
+    .toolbar select, .toolbar input, .toolbar button { font-size: 14px; padding: 8px 12px; border-radius: 6px; border: 1px solid #30363d; background: #0d1117; color: #c9d1d9; }
+    .toolbar select { width: 90px; font-weight: 700; }
+    .toolbar input { flex: 1; }
+    .toolbar .send-btn { background: #238636; border-color: #238636; color: #fff; font-weight: 600; cursor: pointer; padding: 8px 20px; }
+    .toolbar .send-btn:hover { background: #2ea043; }
+    .content { flex: 1; display: flex; overflow: hidden; }
+    .editor-panel, .response-panel { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+    .editor-panel { border-right: 1px solid #30363d; }
+    .panel-header { padding: 8px 16px; font-size: 12px; font-weight: 600; color: #8b949e; background: #161b22; border-bottom: 1px solid #30363d; display: flex; align-items: center; gap: 12px; }
+    .panel-header .tab { padding: 4px 8px; cursor: pointer; border-radius: 4px; }
+    .panel-header .tab.active { background: #30363d; color: #c9d1d9; }
+    .panel-body { flex: 1; overflow: auto; padding: 0; }
+    textarea { width: 100%; height: 100%; background: #0d1117; color: #c9d1d9; border: none; padding: 12px 16px; font-family: 'SF Mono', 'Fira Code', monospace; font-size: 13px; resize: none; outline: none; }
+    .response-meta { padding: 8px 16px; font-size: 12px; display: flex; gap: 16px; background: #161b22; border-bottom: 1px solid #30363d; }
+    .status-badge { padding: 2px 8px; border-radius: 3px; font-weight: 700; }
+    .status-2xx { background: #1a4d2e; color: #3fb950; }
+    .status-4xx { background: #4d1a1a; color: #f85149; }
+    .status-5xx { background: #4d1a1a; color: #f85149; }
+    pre.response { flex: 1; overflow: auto; padding: 12px 16px; margin: 0; font-family: 'SF Mono', 'Fira Code', monospace; font-size: 13px; white-space: pre-wrap; word-break: break-word; }
+    .auth-bar { display: flex; align-items: center; gap: 8px; padding: 8px 16px; background: #1c2128; border-bottom: 1px solid #30363d; font-size: 12px; }
+    .auth-bar input { flex: 1; font-size: 12px; padding: 6px 10px; border-radius: 4px; border: 1px solid #30363d; background: #0d1117; color: #c9d1d9; font-family: monospace; }
+    .auth-bar button { font-size: 12px; padding: 6px 12px; border-radius: 4px; border: 1px solid #30363d; background: #21262d; color: #c9d1d9; cursor: pointer; }
+    .auth-bar button:hover { background: #30363d; }
+    .quick-login { display: flex; gap: 4px; align-items: center; }
+    .quick-login input { width: 160px; }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <nav class="sidebar">
+      <h2>API Routes</h2>
+      <div id="route-list"></div>
+    </nav>
+    <div class="main">
+      <div class="auth-bar">
+        <span>Token:</span>
+        <input type="text" id="auth-token" placeholder="Bearer token (login to populate)">
+        <div class="quick-login">
+          <input type="email" id="login-email" placeholder="email">
+          <input type="password" id="login-pass" placeholder="password">
+          <button onclick="quickLogin()">Login</button>
+          <button onclick="quickRegister()">Register</button>
+        </div>
+      </div>
+      <div class="toolbar">
+        <select id="req-method">
+          <option>GET</option>
+          <option>POST</option>
+          <option>PUT</option>
+          <option>DELETE</option>
+        </select>
+        <input type="text" id="req-url" placeholder="/api/health" value="/api/health">
+        <button class="send-btn" onclick="sendRequest()">Send</button>
+      </div>
+      <div class="content">
+        <div class="editor-panel">
+          <div class="panel-header">
+            <span class="tab active" onclick="showTab('body', this)">Body</span>
+            <span class="tab" onclick="showTab('headers', this)">Headers</span>
+            <span class="tab" onclick="showTab('params', this)">Query Params</span>
+          </div>
+          <div class="panel-body">
+            <textarea id="tab-body" placeholder='{ "key": "value" }'></textarea>
+            <textarea id="tab-headers" style="display:none" placeholder='{ "X-Custom-Header": "value" }'>{}</textarea>
+            <textarea id="tab-params" style="display:none" placeholder='{ "page": "1", "limit": "10" }'>{}</textarea>
+          </div>
+        </div>
+        <div class="response-panel">
+          <div class="response-meta" id="resp-meta" style="display:none">
+            <span>Status: <span id="resp-status" class="status-badge"></span></span>
+            <span>Time: <span id="resp-time"></span></span>
+            <span>Size: <span id="resp-size"></span></span>
+          </div>
+          <pre class="response" id="resp-body">Click "Send" or select a route to get started.</pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const BASE = window.location.origin;
+
+    const routes = [
+      { group: 'Health', routes: [
+        { method: 'GET', path: '/api/health', body: null },
+      ]},
+      { group: 'Auth', routes: [
+        { method: 'POST', path: '/api/auth/register', body: { email: 'user@example.com', password: 'password123', username: 'testuser', name: 'Test User' }},
+        { method: 'POST', path: '/api/auth/login', body: { email: 'user@example.com', password: 'password123' }},
+        { method: 'POST', path: '/api/auth/logout', body: null },
+        { method: 'GET', path: '/api/auth/verify', body: null },
+        { method: 'POST', path: '/api/auth/refresh', body: { refresh_token: '' }},
+      ]},
+      { group: 'Profiles', routes: [
+        { method: 'GET', path: '/api/profiles/:id', body: null, params: { page: '1', limit: '10' }},
+        { method: 'PUT', path: '/api/profiles/:id', body: { name: 'New Name', bio: 'Updated bio', interests: ['food', 'tech'] }},
+        { method: 'GET', path: '/api/profiles/:id/posts', body: null, params: { page: '1', limit: '10' }},
+        { method: 'GET', path: '/api/profiles/:id/bookmarks', body: null, params: { page: '1', limit: '10' }},
+      ]},
+      { group: 'Businesses', routes: [
+        { method: 'GET', path: '/api/businesses', body: null, params: { page: '1', limit: '10' }},
+        { method: 'GET', path: '/api/businesses/search', body: null, params: { q: 'cafe', category: '', city: '' }},
+        { method: 'GET', path: '/api/businesses/:id', body: null },
+        { method: 'GET', path: '/api/businesses/:id/posts', body: null, params: { page: '1', limit: '10', sort: 'recent' }},
+        { method: 'GET', path: '/api/businesses/:id/reviews', body: null, params: { page: '1', limit: '10' }},
+        { method: 'GET', path: '/api/businesses/:id/deals', body: null },
+        { method: 'POST', path: '/api/businesses', body: { name: 'My Business', category: 'restaurant', city: 'Singapore', description: 'A great place', tags: ['food', 'local'] }},
+        { method: 'PUT', path: '/api/businesses/:id', body: { name: 'Updated Name', description: 'Updated desc' }},
+      ]},
+      { group: 'Posts', routes: [
+        { method: 'GET', path: '/api/posts', body: null, params: { page: '1', limit: '10', sort: 'recent' }},
+        { method: 'GET', path: '/api/posts/:id', body: null },
+        { method: 'POST', path: '/api/posts', body: { business_id: '', title: 'My Post Title', content: 'This is the post content with at least 10 chars.' }},
+        { method: 'PUT', path: '/api/posts/:id', body: { title: 'Updated Title', content: 'Updated content that is long enough.' }},
+        { method: 'DELETE', path: '/api/posts/:id', body: null },
+        { method: 'POST', path: '/api/posts/:id/regenerate-summary', body: null },
+      ]},
+      { group: 'Messages', routes: [
+        { method: 'GET', path: '/api/posts/:postId/messages', body: null, params: { page: '1', limit: '20' }},
+        { method: 'POST', path: '/api/posts/:postId/messages', body: { content: 'This is a message.' }},
+        { method: 'PUT', path: '/api/messages/:id', body: { content: 'Updated message.' }},
+        { method: 'DELETE', path: '/api/messages/:id', body: null },
+        { method: 'POST', path: '/api/messages/:id/like', body: null },
+        { method: 'DELETE', path: '/api/messages/:id/like', body: null },
+      ]},
+      { group: 'Reviews', routes: [
+        { method: 'POST', path: '/api/businesses/:businessId/reviews', body: { rating: 5, comment: 'Excellent!' }},
+        { method: 'PUT', path: '/api/reviews/:id', body: { rating: 4, comment: 'Updated review.' }},
+        { method: 'DELETE', path: '/api/reviews/:id', body: null },
+      ]},
+      { group: 'Bookmarks', routes: [
+        { method: 'POST', path: '/api/bookmarks', body: { business_id: '' }},
+        { method: 'DELETE', path: '/api/bookmarks/:businessId', body: null },
+      ]},
+      { group: 'Deals', routes: [
+        { method: 'GET', path: '/api/businesses/:businessId/deals', body: null },
+        { method: 'POST', path: '/api/businesses/:businessId/deals', body: { title: '20% Off', description: 'Weekend special', discount_percentage: 20, code: 'SAVE20' }},
+        { method: 'PUT', path: '/api/deals/:id', body: { title: 'Updated Deal', discount_percentage: 25 }},
+        { method: 'DELETE', path: '/api/deals/:id', body: null },
+      ]},
+      { group: 'AI', routes: [
+        { method: 'POST', path: '/api/ai/summarize/:postId', body: null },
+        { method: 'GET', path: '/api/ai/queue', body: null },
+      ]},
+    ];
+
+    // Render sidebar
+    const listEl = document.getElementById('route-list');
+    routes.forEach(g => {
+      const details = document.createElement('details');
+      details.className = 'route-group';
+      details.open = true;
+      details.innerHTML = `<summary>${g.group}</summary>`;
+      g.routes.forEach(r => {
+        const btn = document.createElement('button');
+        btn.className = 'route-btn';
+        btn.innerHTML = `<span class="method method-${r.method}">${r.method}</span><span>${r.path}</span>`;
+        btn.onclick = () => selectRoute(r);
+        details.appendChild(btn);
+      });
+      listEl.appendChild(details);
+    });
+
+    function selectRoute(r) {
+      document.getElementById('req-method').value = r.method;
+
+      // Prompt for path params
+      let path = r.path;
+      const paramMatches = path.match(/:[a-zA-Z]+/g);
+      if (paramMatches) {
+        paramMatches.forEach(p => {
+          const val = prompt(`Enter value for ${p}:`, '');
+          if (val !== null) path = path.replace(p, val);
+        });
+      }
+      document.getElementById('req-url').value = path;
+      document.getElementById('tab-body').value = r.body ? JSON.stringify(r.body, null, 2) : '';
+      document.getElementById('tab-params').value = r.params ? JSON.stringify(r.params, null, 2) : '{}';
+      // Switch to body tab
+      showTab('body', document.querySelector('.panel-header .tab'));
+    }
+
+    function showTab(name, el) {
+      document.querySelectorAll('.panel-body textarea').forEach(t => t.style.display = 'none');
+      document.querySelectorAll('.panel-header .tab').forEach(t => t.classList.remove('active'));
+      document.getElementById('tab-' + name).style.display = '';
+      el.classList.add('active');
+    }
+
+    async function quickLogin() {
+      const email = document.getElementById('login-email').value;
+      const pass = document.getElementById('login-pass').value;
+      if (!email || !pass) return alert('Enter email and password');
+      try {
+        const res = await fetch(BASE + '/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password: pass }),
+        });
+        const data = await res.json();
+        if (data.data?.session?.access_token) {
+          document.getElementById('auth-token').value = data.data.session.access_token;
+          alert('Logged in! Token saved.');
+        } else {
+          alert('Login failed: ' + JSON.stringify(data));
+        }
+      } catch (e) { alert('Error: ' + e.message); }
+    }
+
+    async function quickRegister() {
+      const email = document.getElementById('login-email').value;
+      const pass = document.getElementById('login-pass').value;
+      if (!email || !pass) return alert('Enter email and password');
+      const username = 'user_' + Date.now();
+      try {
+        const res = await fetch(BASE + '/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password: pass, username, name: username }),
+        });
+        const data = await res.json();
+        if (data.data?.session?.access_token) {
+          document.getElementById('auth-token').value = data.data.session.access_token;
+          alert('Registered & logged in! Token saved.');
+        } else {
+          alert('Register response: ' + JSON.stringify(data));
+        }
+      } catch (e) { alert('Error: ' + e.message); }
+    }
+
+    async function sendRequest() {
+      const method = document.getElementById('req-method').value;
+      let url = document.getElementById('req-url').value;
+      const bodyStr = document.getElementById('tab-body').value.trim();
+      const paramsStr = document.getElementById('tab-params').value.trim();
+      const headersStr = document.getElementById('tab-headers').value.trim();
+      const token = document.getElementById('auth-token').value.trim();
+
+      // Build query params
+      if (paramsStr) {
+        try {
+          const params = JSON.parse(paramsStr);
+          const qs = Object.entries(params).filter(([,v]) => v).map(([k,v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`).join('&');
+          if (qs) url += (url.includes('?') ? '&' : '?') + qs;
+        } catch {}
+      }
+
+      const headers = { 'Content-Type': 'application/json' };
+      if (token) headers['Authorization'] = 'Bearer ' + token;
+
+      // Custom headers
+      if (headersStr) {
+        try { Object.assign(headers, JSON.parse(headersStr)); } catch {}
+      }
+
+      const opts = { method, headers };
+      if (bodyStr && method !== 'GET') opts.body = bodyStr;
+
+      const metaEl = document.getElementById('resp-meta');
+      const statusEl = document.getElementById('resp-status');
+      const timeEl = document.getElementById('resp-time');
+      const sizeEl = document.getElementById('resp-size');
+      const bodyEl = document.getElementById('resp-body');
+
+      bodyEl.textContent = 'Loading...';
+      metaEl.style.display = 'none';
+
+      const start = performance.now();
+      try {
+        const res = await fetch(BASE + url, opts);
+        const elapsed = Math.round(performance.now() - start);
+        const text = await res.text();
+
+        metaEl.style.display = '';
+        statusEl.textContent = res.status + ' ' + res.statusText;
+        statusEl.className = 'status-badge ' + (res.status < 300 ? 'status-2xx' : res.status < 500 ? 'status-4xx' : 'status-5xx');
+        timeEl.textContent = elapsed + 'ms';
+        sizeEl.textContent = (text.length / 1024).toFixed(1) + ' KB';
+
+        try {
+          bodyEl.textContent = JSON.stringify(JSON.parse(text), null, 2);
+        } catch {
+          bodyEl.textContent = text;
+        }
+      } catch (e) {
+        metaEl.style.display = '';
+        statusEl.textContent = 'Error';
+        statusEl.className = 'status-badge status-5xx';
+        timeEl.textContent = '-';
+        sizeEl.textContent = '-';
+        bodyEl.textContent = e.message;
+      }
+    }
+
+    // Send on Ctrl/Cmd+Enter
+    document.addEventListener('keydown', e => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') sendRequest();
+    });
+  </script>
+</body>
+</html>

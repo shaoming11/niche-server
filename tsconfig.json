@@ -10,7 +10,7 @@
     "module": "nodenext",
     "target": "esnext",
     "moduleResolution": "nodenext",
-    "types": ["jest"],
+    "types": ["jest", "node"],
     // For nodejs:
     // "lib": ["esnext"],
     // "types": ["node"],
@@ -41,5 +41,6 @@
     "noUncheckedSideEffectImports": true,
     "moduleDetection": "force",
     "skipLibCheck": true,
-  }
+  },
+  "exclude": ["supabase/functions", "dist"]
 }

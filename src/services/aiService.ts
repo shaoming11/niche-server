@@ -11,7 +11,12 @@ ${messagesText}
 
 Provide a concise 2-3 sentence summary of the main points and overall sentiment.`;
 
-  const result = await model.generateContent(prompt);
+  const result = await Promise.race([
+    model.generateContent(prompt),
+    new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error('Gemini API timed out after 30s')), 30000)
+    ),
+  ]);
   const response = result.response;
   return response.text();
 }
