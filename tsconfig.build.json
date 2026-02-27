@@ -1,0 +1,7 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "types": ["node"]
+  },
+  "exclude": ["supabase/functions", "dist", "**/*.test.ts", "**/*.spec.ts", "src/__tests__"]
+}

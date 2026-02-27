@@ -4,7 +4,7 @@
   "description": "Niche community backend server",
   "main": "dist/server.js",
   "scripts": {
-    "build": "tsc --build",
+    "build": "tsc --build tsconfig.build.json",
     "start": "node dist/server.js",
     "dev": "tsx --env-file=.env src/server.ts",
     "test": "jest --verbose"
